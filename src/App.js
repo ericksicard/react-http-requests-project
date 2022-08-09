@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import MoviesList from './components/MoviesList';
 import './App.css';
@@ -9,7 +9,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetchMovieHandler() {
+  // Using useCallback hook to add "fetchMovieHandler" as a dependency 
+  // in useEffect hook whitout the risk of infinite loop
+  const fetchMovieHandler = useCallback( async () => {
     setIsLoading(true);
     setError(null);
 
@@ -20,7 +22,6 @@ function App() {
       }
       const data = await response.json();
 
-      
       const transformdMovies = data.results.map( movieData => {
       return {
             id: movieData.episode_id,
@@ -29,13 +30,19 @@ function App() {
             releaseDate: movieData.release_date
           }
         })
+
         setMovies(transformdMovies);        
       } 
       catch(error) {
         setError(error.message)
       }
       setIsLoading(false);
-  }
+  }, []);
+
+  // Loading data when the app is loaded
+  useEffect(() => {
+    fetchMovieHandler();
+  }, [fetchMovieHandler]);
 
   return (
     <React.Fragment>
